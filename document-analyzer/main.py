@@ -1,5 +1,5 @@
 from PyPDF2 import PdfReader
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer,util
 
 reader = PdfReader("sample.pdf")
 
@@ -20,7 +20,10 @@ for j in range(len(chunks)):
 print("\n\n length of chunks:",len(chunks))
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
-embedding = model.encode(chunks[0])
+embedding = model.encode(chunks)
 
 query = "tell me about the handwritten digit recognition project"
 query_emb =  model.encode(query)
+
+score = util.cos_sim(query_emb,embedding)
+print(score)
