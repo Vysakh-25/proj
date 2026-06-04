@@ -22,10 +22,12 @@ print("\n\n length of chunks:",len(chunks))"""
 model = SentenceTransformer("all-MiniLM-L6-v2")
 embedding = model.encode(chunks)
 
-query = "tell me about the handwritten digit recognition project"
+query = "what languages does he know?"
 
 def retrieve(query):
     query_emb =  model.encode(query)
     score = util.cos_sim(query_emb,embedding)
     best_index = score.argmax()
     return best_index
+
+print(chunks[retrieve(query)])
