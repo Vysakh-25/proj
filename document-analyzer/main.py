@@ -20,14 +20,23 @@ for i in range(0, len(text), chunk_size - overlap):
 print("\n\n length of chunks:",len(chunks))"""
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
-embedding = model.encode(chunks)
+chunks_embedding = model.encode(chunks)
 
 query = "what languages does he know?"
 
+top_k = 3
+
 def retrieve(query):
     query_emb =  model.encode(query)
-    score = util.cos_sim(query_emb,embedding)
+    score = util.cos_sim(query_emb,chunks_embedding)
+    top_indices = score[0].argsort(descending=True)[:top_k]
+    print(top_indices)
     best_index = score.argmax()
-    return best_index
+    return top_indices
 
-print(chunks[retrieve(query)])
+results = retrieve(query)
+
+for idx in results:
+    print("\n---Match---")
+    print(chunks[idx])
+    
