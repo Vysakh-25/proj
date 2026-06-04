@@ -14,16 +14,18 @@ for i in range(0, len(text), chunk_size - overlap):
     chunk = text[i:i + chunk_size]
     chunks.append(chunk)
 
-for j in range(len(chunks)):
+"""for j in range(len(chunks)):
     print("\n---para{}---".format(j))
     print(chunks[j])
-print("\n\n length of chunks:",len(chunks))
+print("\n\n length of chunks:",len(chunks))"""
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 embedding = model.encode(chunks)
 
 query = "tell me about the handwritten digit recognition project"
-query_emb =  model.encode(query)
 
-score = util.cos_sim(query_emb,embedding)
-print(score)
+def retrieve(query):
+    query_emb =  model.encode(query)
+    score = util.cos_sim(query_emb,embedding)
+    best_index = score.argmax()
+    return best_index
