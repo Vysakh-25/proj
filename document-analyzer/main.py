@@ -34,18 +34,12 @@ top_k = 3
 def retrieve(query):
     query_emb =  model.encode(query)
     query_emb = query_emb.reshape(1,-1)
-    score = util.cos_sim(query_emb,chunk_embeddings)
-    top_indices = score[0].argsort(descending=True)[:top_k]
     distances,indices = index.search(query_emb,top_k)
-    print("Manual:", top_indices)
-    print("FAISS:", indices)
-    return top_indices
+    return indices[0]
 
 results = retrieve(query)
 
-"""
 for idx in results:
     print("\n---Match---")
     print(chunks[idx])
-"""
 
