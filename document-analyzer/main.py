@@ -1,5 +1,6 @@
 from PyPDF2 import PdfReader
 from sentence_transformers import SentenceTransformer,util
+import faiss
 
 reader = PdfReader("sample.pdf")
 
@@ -19,8 +20,12 @@ for i in range(0, len(text), chunk_size - overlap):
     print(chunks[j])
 print("\n\n length of chunks:",len(chunks))"""
 
+
 model = SentenceTransformer("all-MiniLM-L6-v2")
-chunks_embedding = model.encode(chunks)
+chunk_embeddings = model.encode(chunks)
+index = faiss.IndexFlatL2(384)
+index.add(chunk_embeddings)
+print(index.ntotal)
 
 query = "what languages does he know?"
 
@@ -28,15 +33,19 @@ top_k = 3
 
 def retrieve(query):
     query_emb =  model.encode(query)
-    score = util.cos_sim(query_emb,chunks_embedding)
+    query_emb = query_emb.reshape(1,-1)
+    score = util.cos_sim(query_emb,chunk_embeddings)
     top_indices = score[0].argsort(descending=True)[:top_k]
-    print(top_indices)
-    best_index = score.argmax()
+    distances,indices = index.search(query_emb,top_k)
+    print("Manual:", top_indices)
+    print("FAISS:", indices)
     return top_indices
 
 results = retrieve(query)
 
+"""
 for idx in results:
     print("\n---Match---")
     print(chunks[idx])
-    
+"""
+
