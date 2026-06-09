@@ -1,6 +1,7 @@
 from PyPDF2 import PdfReader
 from sentence_transformers import SentenceTransformer,util
 import faiss
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 reader = PdfReader("sample.pdf")
 
@@ -25,9 +26,9 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 chunk_embeddings = model.encode(chunks)
 index = faiss.IndexFlatL2(384)
 index.add(chunk_embeddings)
-print(index.ntotal)
+#print(index.ntotal)
 
-query = "what languages does he know?"
+query = input("Ask a question: ")
 
 top_k = 3
 
@@ -39,7 +40,24 @@ def retrieve(query):
 
 results = retrieve(query)
 
-for idx in results:
-    print("\n---Match---")
-    print(chunks[idx])
+context = ""
 
+for idx in results:
+    context += chunks[idx] + "\n\n"
+
+prompt = f"""
+Use only the information provided in the context below to answer the question.
+
+If the answer is not present in the context, say:
+"I could not find that information in the document."
+
+Context:
+{context}
+
+Question:
+{query}
+
+Answer:
+"""
+
+print(prompt)
