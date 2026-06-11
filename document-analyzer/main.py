@@ -1,6 +1,7 @@
 from PyPDF2 import PdfReader
 from sentence_transformers import SentenceTransformer,util
 import faiss
+import pickle
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 reader = PdfReader("sample.pdf")
@@ -19,23 +20,23 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 chunk_embeddings = model.encode(chunks)
 index = faiss.IndexFlatL2(384)
 index.add(chunk_embeddings)
+faiss.write_index(index, "my_index.faiss")   #saving index to disk
+pickle.dump(chunks,open("chunks.pkl","wb"))
 #print(index.ntotal)
 
 query = input("Ask a question: ")
 
-top_k = 3
-
-def retrieve(query):
+def retrieve(query,top_k = 3):
     query_emb =  model.encode(query)
     query_emb = query_emb.reshape(1,-1)
     distances,indices = index.search(query_emb,top_k)
-    return indices[0]
+    print(distances)
+    return distances[0],indices[0]
 
-results = retrieve(query)
-
+distances,results = retrieve(query)
 context = ""
 
-for idx in results:
+for distance, idx in zip(distances, results):
     context += chunks[idx] + "\n\n"
 
 prompt = f"""
