@@ -1,27 +1,14 @@
 from PyPDF2 import PdfReader
 from sentence_transformers import SentenceTransformer,util
+from sentence_transformers import CrossEncoder
 import faiss
-import pickle
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-reader = PdfReader("sample.pdf")
-
-text = ""
-for page in reader.pages:
-    text += page.extract_text()
-
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=300,
-    chunk_overlap=50
-)
-chunks = text_splitter.split_text(text)
+import pickle
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
-chunk_embeddings = model.encode(chunks)
-index = faiss.IndexFlatL2(384)
-index.add(chunk_embeddings)
-faiss.write_index(index, "my_index.faiss")   #saving index to disk
-pickle.dump(chunks,open("chunks.pkl","wb"))
+reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+index = faiss.read_index("my_index.faiss")
+chunks = pickle.load(open("chunks.pkl","rb"))
 #print(index.ntotal)
 
 query = input("Ask a question: ")
